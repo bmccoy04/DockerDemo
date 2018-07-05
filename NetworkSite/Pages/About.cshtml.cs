@@ -12,7 +12,7 @@ namespace NetworkSite.Pages
 
         public void OnGet()
         {
-            Message = "Your application description page.";
+            Message = "This is an application that demos how you can create a distributed system using docker and docker-compose.";
         }
     }
 }

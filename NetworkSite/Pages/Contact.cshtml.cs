@@ -12,7 +12,7 @@ namespace NetworkSite.Pages
 
         public void OnGet()
         {
-            Message = "Your contact page.";
+            Message = "Bryan\'s contact page.";
         }
     }
 }
