@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,6 +32,11 @@ namespace NetworkSite
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddHttpClient("networkService", c => {
+                //c.BaseAddress = new Uri("http://localhost:5003/");
+                c.BaseAddress = new Uri("http://WebApi/");
+                c.DefaultRequestHeaders.Add("Accept", "application/json");
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
@@ -53,6 +59,25 @@ namespace NetworkSite
             app.UseCookiePolicy();
 
             app.UseMvc();
+        }
+    }
+
+    public class NetworkServiceClient
+    {
+        public HttpClient HttpClient {get;}
+
+        public NetworkServiceClient(HttpClient httpClient)
+        {
+            HttpClient = httpClient;
+        }
+
+        public async Task<HttpResponseMessage> GetJson()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "/");
+
+            var response = await HttpClient.SendAsync(request).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            return response;
         }
     }
 }

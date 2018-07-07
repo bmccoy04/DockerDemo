@@ -1,9 +1,11 @@
 version: "3"
 services:
-  web:
+  web:    
     build: ./NetworkSite
     ports:
-      - "5000:80"
+      - "5000:80"    
+    depends_on:
+      - "webapi"
   webapi:
     build: ./NetworkService
     ports:

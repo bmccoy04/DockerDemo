@@ -19,9 +19,9 @@ namespace NetworkService.Services
                 new Host() {
                     IsUp = false,
                     Latency = 0.00,
-                    MacAddress = "6C:33:A9:72:F1:E7",
-                    IpAddress = "192.168.7.113",
-                    Manufacturer = "Magic Jack"
+                    MacAddress = "6C:33:A9:72:EE:EE",
+                    IpAddress = "192.168.7.101",
+                    Manufacturer = "Mac Book"
                 }
             };
         }

@@ -5,3 +5,39 @@
 }
 
 Home Page
+
+<br />
+
+<table>
+    <thead>
+        <tr>
+            <th>
+                Is Up
+            </th>
+            <th>
+                Latency
+            </th>
+            <th>
+                Mac Address
+            </th>
+            <th>
+                Ip Address
+            </th>
+            <th>
+                Manufacturer
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var host in Model.Hosts)
+        {
+            <tr>
+                <td>@host.IsUp</td>
+                <td>@host.Latency</td>
+                <td>@host.MacAddress</td>
+                <td>@host.IpAddress</td>
+                <td>@host.Manufacturer</td>
+            </tr>
+        }
+    </tbody>
+</table>
