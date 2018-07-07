@@ -6,7 +6,14 @@ services:
       - "5000:80"    
     depends_on:
       - "webapi"
+  scanner:    
+    build: ./NetworkScanner
+    depends_on:
+      - "webapi"
+      - "redis"
   webapi:
     build: ./NetworkService
     ports:
       - "5001:80"
+  redis:
+    image: "redis:alpine"
