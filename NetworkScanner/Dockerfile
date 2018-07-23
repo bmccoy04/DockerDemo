@@ -7,7 +7,7 @@ RUN dotnet restore
 COPY . ./
 RUN dotnet publish -c Release -o out
 
-FROM microsoft/dotnet:2.1-aspnetcore-runtime As runtime
+FROM bmccoy04/dotnet-core-2.1-runtime-with-nmap:latest As runtime
 WORKDIR /app
 COPY --from=build /app/out ./
 
