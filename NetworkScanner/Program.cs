@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using StackExchange.Redis.Extensions.Core;
 using StackExchange.Redis.Extensions.Core.Configuration;
@@ -23,15 +26,25 @@ namespace NetworkScanner
         static void Main(string[] args)
         {
             Console.WriteLine("start");
-//            var readOut = GetConsoleReadOut();
-
-            var hostList = ProcessOutPut(output);
+            var ipAddressRange = GetIpAddressRange();
+            
+            Console.WriteLine("My Ip Address: " + ipAddressRange);
+            var readOut = GetConsoleReadOut(ipAddressRange);
+            
+            var hostList = ProcessOutPut(readOut);
             foreach(var host in hostList) {
                 Console.WriteLine(">> " + host.IpAddress + "  " 
                 + host.Latency + " " 
                 + host.MacAddress + " "
                 + host.IsUp);
             }
+        }
+
+        private static string GetIpAddressRange()
+        {
+            var s = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString();
+
+            return s.Remove(s.Length -1, 1) + "*";
         }
 
         private static IList<Host> ProcessOutPut(List<string> readOut)
@@ -131,7 +144,7 @@ namespace NetworkScanner
             Console.WriteLine(s);
         }
 
-        private static List<string> GetConsoleReadOut() {
+        private static List<string> GetConsoleReadOut(string ipAddressRange) {
             int lineCount = 0;
             var readOut = new List<string>();
             StringBuilder sb = new StringBuilder();
@@ -143,13 +156,14 @@ namespace NetworkScanner
             process.StartInfo.ArgumentList.Add("-sP");
             //process.StartInfo.ArgumentList.Add("-PS");
             //process.StartInfo.ArgumentList.Add("-n");
-            process.StartInfo.ArgumentList.Add("172.17.0.*");
+            process.StartInfo.ArgumentList.Add(ipAddressRange);
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardOutput = true;
             process.OutputDataReceived += new DataReceivedEventHandler((sender, e) => 
             {
                 if(!string.IsNullOrEmpty(e.Data))
                 {
+                    Console.WriteLine(e.Data);
                     readOut.Add(e.Data);
                 }
             });
