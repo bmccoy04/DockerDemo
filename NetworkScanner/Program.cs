@@ -14,18 +14,20 @@ namespace NetworkScanner
             "Nmap scan report for 172.17.0.1",
             "Host is up (0.000043s latency)",
             "MAC Address: 02:42:31:20:D2:3A (Unknown)",
-            "Nmap scan report for 66f36851ea48 (172.17.0.2)",
+            "Nmap scan report for 172.17.0.2",
+            "MAC Address: 02:42:31:20:D2:3A (Unknown)",
             "Host is up.",
             "Nmap done: 256 IP addresses (2 hosts up) scanned in 5.91 seconds"
         };
 
         static void Main(string[] args)
         {
+            Console.WriteLine("start");
 //            var readOut = GetConsoleReadOut();
 
             var hostList = ProcessOutPut(output);
             foreach(var host in hostList) {
-                Console.WriteLine("Host is up: " + host.IpAddress + "  " 
+                Console.WriteLine(">> " + host.IpAddress + "  " 
                 + host.Latency + " " 
                 + host.MacAddress + " "
                 + host.IsUp);
@@ -39,10 +41,10 @@ namespace NetworkScanner
 
             foreach(var line in readOut)
             {
-                if(NmapDoneLine(line))
-                    continue;
-                
                 if(IsScanReportLine(line)) {
+                Console.WriteLine(line);
+                    if(currentHost != null)
+                        hosts.Add(currentHost);
                     currentHost = new Host();
                     currentHost.IpAddress = GetIpAddress(line);
                     currentHost.IsUp = true;
@@ -54,13 +56,14 @@ namespace NetworkScanner
                         currentHost.MacAddress = GetMacAddress(line);
             }
 
+            if(currentHost != null)
+                hosts.Add(currentHost);
             return hosts;
         }
 
         private static string GetMacAddress(string line)
         {
-            int startPosition = line.LastIndexOf("MAC Address: ");
-            return line.Substring(startPosition, line.Length);
+            return line.Substring(13, line.Length - 13);
         }
 
         private static bool IsMacAddressLine(string line)
@@ -70,8 +73,7 @@ namespace NetworkScanner
 
         private static string GetLatency(string line)
         {
-            int startPosition = line.LastIndexOf("Host is up ");
-            return line.Substring(startPosition, line.Length);
+            return line.Substring(10, line.Length - 10);
         }
 
         private static bool HostIsUpLine(string line)
@@ -81,8 +83,7 @@ namespace NetworkScanner
 
         private static string GetIpAddress(string line)
         {
-            int startPosition = line.LastIndexOf("Nmap scan report for ");
-            return line.Substring(startPosition, line.Length);
+            return line.Substring(20, line.Length - 20);
         }
 
         private static bool NmapDoneLine(string line)
