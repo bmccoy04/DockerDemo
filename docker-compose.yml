@@ -1,19 +1,27 @@
 version: "3"
 services:
+  redis:
+    image: "redis:alpine"
+  rabbitmq:
+    image: "rabbitmq:3-management-alpine"
   web:    
     build: ./NetworkSite
     ports:
       - "5000:80"    
     depends_on:
       - "webapi"
-  scanner:    
-    build: ./NetworkScanner
-    depends_on:
-      - "webapi"
-      - "redis"
   webapi:
     build: ./NetworkService
     ports:
       - "5001:80"
-  redis:
-    image: "redis:alpine"
+  scanner:    
+    build: ./NetworkScanner
+    depends_on:
+      - "webapi"
+      - "rabbitmq"  
+  receiver:    
+    build: ./NetworkReceiver
+    depends_on:
+      - "webapi"
+      - "redis"
+      - "rabbitmq"

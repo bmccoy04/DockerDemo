@@ -8,6 +8,8 @@ using System.Text;
 using StackExchange.Redis.Extensions.Core;
 using StackExchange.Redis.Extensions.Core.Configuration;
 using StackExchange.Redis.Extensions.Newtonsoft;
+using RabbitMQ.Client;
+using Newtonsoft.Json;
 
 namespace NetworkScanner
 {
@@ -15,6 +17,10 @@ namespace NetworkScanner
     {
         static void Main(string[] args)
         {
+            
+            
+            System.Threading.Thread.Sleep(20000);
+            
             var number = 1;
             while(true){
                 Console.WriteLine("Starting scan number:" + number++);
@@ -24,12 +30,40 @@ namespace NetworkScanner
                 var readOut = GetConsoleReadOut(ipAddressRange);
                 
                 var hostList = ProcessOutPut(readOut);
-                PushToRedis(hostList);
+                //PushToRedis(hostList);
+
+                SendCommand(hostList);
+
                 foreach(var host in hostList) {
                     Console.WriteLine(">> " + host.IpAddress + "  " 
                     + host.Latency + " " 
                     + host.MacAddress + " "
                     + host.IsUp);
+                }
+            }
+        }
+
+        private static void SendCommand(IList<Host> hostList)
+        {
+            var factory = new ConnectionFactory() { HostName = "rabbitmq"};
+            using (var connection = factory.CreateConnection())
+            {
+                using(var channel = connection.CreateModel())
+                {
+                    channel.QueueDeclare(queue: "myque",
+                                        durable: false,
+                                        exclusive: false,
+                                        autoDelete: false,
+                                        arguments: null);
+
+                    string message = "Hello World";// JsonConvert.SerializeObject(hostList);
+                    var body = Encoding.UTF8.GetBytes(message);
+
+                    channel.BasicPublish(exchange: "",
+                                        routingKey: "myque",
+                                        basicProperties: null,
+                                        body: body);
+                    Console.WriteLine("Sender sent: {0}", message);
                 }
             }
         }
@@ -122,7 +156,8 @@ namespace NetworkScanner
             Console.WriteLine("Hosts Added");
         }
 
-        private static List<string> GetConsoleReadOut(string ipAddressRange) {
+        private static List<string> GetConsoleReadOut(string ipAddressRange) 
+        {
             int lineCount = 0;
             var readOut = new List<string>();
             StringBuilder sb = new StringBuilder();

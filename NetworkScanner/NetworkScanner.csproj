@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="StackExchange.Redis.Extensions.Core" Version="3.4.0" />
     <PackageReference Include="StackExchange.Redis.Extensions.Newtonsoft" Version="3.4.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="5.1.0" />
   </ItemGroup>
 
 </Project>
