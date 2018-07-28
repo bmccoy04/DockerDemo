@@ -4,27 +4,32 @@
     ViewData["Title"] = "Home page";
 }
 
-Home Page
+<style>
+    th, td {
+        padding: 10px 10px 10px 10px;
+    }
+    tr {
+        border: solid;
+    }
+</style>
+
 
 <br />
 
 <table>
     <thead>
         <tr>
-            <th>
+            <th >
                 Is Up
             </th>
-            <th>
+            <th >
                 Latency
             </th>
-            <th>
+            <th >
                 Mac Address
             </th>
-            <th>
+            <th >
                 Ip Address
-            </th>
-            <th>
-                Manufacturer
             </th>
         </tr>
     </thead>
@@ -36,7 +41,6 @@ Home Page
                 <td>@host.Latency</td>
                 <td>@host.MacAddress</td>
                 <td>@host.IpAddress</td>
-                <td>@host.Manufacturer</td>
             </tr>
         }
     </tbody>

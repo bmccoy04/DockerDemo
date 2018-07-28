@@ -13,30 +13,24 @@ namespace NetworkScanner
 {
     class Program
     {
-        private static List<string> output = new List<string>{"Starting Nmap 7.40 ( https://nmap.org ) at 2018-07-25 01:27 UTC",
-            "Nmap scan report for 172.17.0.1",
-            "Host is up (0.000043s latency)",
-            "MAC Address: 02:42:31:20:D2:3A (Unknown)",
-            "Nmap scan report for 172.17.0.2",
-            "MAC Address: 02:42:31:20:D2:3A (Unknown)",
-            "Host is up.",
-            "Nmap done: 256 IP addresses (2 hosts up) scanned in 5.91 seconds"
-        };
-
         static void Main(string[] args)
         {
-            Console.WriteLine("start");
-            var ipAddressRange = GetIpAddressRange();
-            
-            Console.WriteLine("My Ip Address: " + ipAddressRange);
-            var readOut = GetConsoleReadOut(ipAddressRange);
-            
-            var hostList = ProcessOutPut(readOut);
-            foreach(var host in hostList) {
-                Console.WriteLine(">> " + host.IpAddress + "  " 
-                + host.Latency + " " 
-                + host.MacAddress + " "
-                + host.IsUp);
+            var number = 1;
+            while(true){
+                Console.WriteLine("Starting scan number:" + number++);
+                var ipAddressRange = GetIpAddressRange();
+                
+                Console.WriteLine("My Ip Address Range: " + ipAddressRange);
+                var readOut = GetConsoleReadOut(ipAddressRange);
+                
+                var hostList = ProcessOutPut(readOut);
+                PushToRedis(hostList);
+                foreach(var host in hostList) {
+                    Console.WriteLine(">> " + host.IpAddress + "  " 
+                    + host.Latency + " " 
+                    + host.MacAddress + " "
+                    + host.IsUp);
+                }
             }
         }
 
@@ -55,7 +49,6 @@ namespace NetworkScanner
             foreach(var line in readOut)
             {
                 if(IsScanReportLine(line)) {
-                Console.WriteLine(line);
                     if(currentHost != null)
                         hosts.Add(currentHost);
                     currentHost = new Host();
@@ -109,7 +102,7 @@ namespace NetworkScanner
             return line.Contains("Nmap scan report for");
         }
 
-        private static void RedisTest()
+        private static void PushToRedis(IList<Host> hosts)
         {
             var config = new RedisConfiguration()
             {
@@ -122,26 +115,11 @@ namespace NetworkScanner
 
             var cacheClient = new StackExchangeRedisCacheClient(new NewtonsoftSerializer(), config);
 
-            var host = new List<Host>() {
-                new Host() {
-                    IsUp = true,
-                    MacAddress = "38:EA:A7:55:C4:E0",
-                    IpAddress = "192.168.7.15",
-                },
-                new Host() {
-                    IsUp = false,
-                    MacAddress = "6C:33:A9:72:22:22",
-                    IpAddress = "192.168.7.121",
-                }
-            };
-
             Console.WriteLine("Adding Hosts...");
 
-            cacheClient.Add("myhost", host);
+            cacheClient.Add("myhost", hosts);
 
             Console.WriteLine("Hosts Added");
-            var s = Console.ReadLine();
-            Console.WriteLine(s);
         }
 
         private static List<string> GetConsoleReadOut(string ipAddressRange) {
@@ -163,7 +141,6 @@ namespace NetworkScanner
             {
                 if(!string.IsNullOrEmpty(e.Data))
                 {
-                    Console.WriteLine(e.Data);
                     readOut.Add(e.Data);
                 }
             });
