@@ -31,7 +31,6 @@ namespace NetworkScanner
                 var readOut = GetConsoleReadOut(ipAddressRange);
 
                 var hostList = ProcessOutPut(readOut);
-                //PushToRedis(hostList);
 
                 SendCommand(hostList);
 
@@ -134,25 +133,7 @@ namespace NetworkScanner
             return line.Contains("Nmap scan report for");
         }
 
-        private static void PushToRedis(IList<Host> hosts)
-        {
-            var config = new RedisConfiguration()
-            {
-                AbortOnConnectFail = false,
-                KeyPrefix = "MyApp",
-                Hosts = new RedisHost[]{
-                    new RedisHost(){Host = "redis", Port = 6379}
-                },
-            };
-
-            var cacheClient = new StackExchangeRedisCacheClient(new NewtonsoftSerializer(), config);
-
-            Console.WriteLine("Adding Hosts...");
-
-            cacheClient.Add("myhost", hosts);
-
-            Console.WriteLine("Hosts Added");
-        }
+        
 
         private static List<string> GetConsoleReadOut(string ipAddressRange)
         {
