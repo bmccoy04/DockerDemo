@@ -17,26 +17,28 @@ namespace NetworkScanner
     {
         static void Main(string[] args)
         {
-            
-            
+
+
             System.Threading.Thread.Sleep(20000);
-            
+
             var number = 1;
-            while(true){
+            while (true)
+            {
                 Console.WriteLine("Starting scan number:" + number++);
                 var ipAddressRange = GetIpAddressRange();
-                
+
                 Console.WriteLine("My Ip Address Range: " + ipAddressRange);
                 var readOut = GetConsoleReadOut(ipAddressRange);
-                
+
                 var hostList = ProcessOutPut(readOut);
                 //PushToRedis(hostList);
 
                 SendCommand(hostList);
 
-                foreach(var host in hostList) {
-                    Console.WriteLine(">> " + host.IpAddress + "  " 
-                    + host.Latency + " " 
+                foreach (var host in hostList)
+                {
+                    Console.WriteLine(">> " + host.IpAddress + "  "
+                    + host.Latency + " "
                     + host.MacAddress + " "
                     + host.IsUp);
                 }
@@ -45,34 +47,26 @@ namespace NetworkScanner
 
         private static void SendCommand(IList<Host> hostList)
         {
-            var factory = new ConnectionFactory() { HostName = "rabbitmq"};
+            var factory = new ConnectionFactory() { HostName = "rabbitmq" };
             using (var connection = factory.CreateConnection())
+            using (var channel = connection.CreateModel())
             {
-                using(var channel = connection.CreateModel())
-                {
-                    channel.QueueDeclare(queue: "myque",
-                                        durable: false,
-                                        exclusive: false,
-                                        autoDelete: false,
-                                        arguments: null);
+                channel.QueueDeclare(queue: "hello", durable: false, exclusive: false, autoDelete: false, arguments: null);
 
-                    string message = "Hello World";// JsonConvert.SerializeObject(hostList);
-                    var body = Encoding.UTF8.GetBytes(message);
+                string message = JsonConvert.SerializeObject(hostList);
+                var body = Encoding.UTF8.GetBytes(message);
 
-                    channel.BasicPublish(exchange: "",
-                                        routingKey: "myque",
-                                        basicProperties: null,
-                                        body: body);
-                    Console.WriteLine("Sender sent: {0}", message);
-                }
+                channel.BasicPublish(exchange: "", routingKey: "hello", basicProperties: null, body: body);
+                Console.WriteLine(" [x] Sent {0}", message);
             }
+
         }
 
         private static string GetIpAddressRange()
         {
             var s = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString();
 
-            return s.Remove(s.Length -1, 1) + "*";
+            return s.Remove(s.Length - 1, 1) + "*";
         }
 
         private static IList<Host> ProcessOutPut(List<string> readOut)
@@ -80,23 +74,27 @@ namespace NetworkScanner
             var hosts = new List<Host>();
             var currentHost = new Host();
 
-            foreach(var line in readOut)
+            foreach (var line in readOut)
             {
-                if(IsScanReportLine(line)) {
-                    if(currentHost != null)
+                if (IsScanReportLine(line))
+                {
+                    if (currentHost != null)
                         hosts.Add(currentHost);
                     currentHost = new Host();
                     currentHost.IpAddress = GetIpAddress(line);
                     currentHost.IsUp = true;
-                } else if(HostIsUpLine(line)) {
-                    if(currentHost != null)
+                }
+                else if (HostIsUpLine(line))
+                {
+                    if (currentHost != null)
                         currentHost.Latency = GetLatency(line);
-                } else if(IsMacAddressLine(line))
-                    if(currentHost != null)
+                }
+                else if (IsMacAddressLine(line))
+                    if (currentHost != null)
                         currentHost.MacAddress = GetMacAddress(line);
             }
 
-            if(currentHost != null)
+            if (currentHost != null)
                 hosts.Add(currentHost);
             return hosts;
         }
@@ -108,7 +106,7 @@ namespace NetworkScanner
 
         private static bool IsMacAddressLine(string line)
         {
-            return line.Contains("MAC Address:"); 
+            return line.Contains("MAC Address:");
         }
 
         private static string GetLatency(string line)
@@ -156,13 +154,13 @@ namespace NetworkScanner
             Console.WriteLine("Hosts Added");
         }
 
-        private static List<string> GetConsoleReadOut(string ipAddressRange) 
+        private static List<string> GetConsoleReadOut(string ipAddressRange)
         {
             int lineCount = 0;
             var readOut = new List<string>();
             StringBuilder sb = new StringBuilder();
             Process process = new Process();
-            
+
             process.StartInfo.FileName = "nmap";
             //process.StartInfo.ArgumentList.Add("-sL");
             // -sP -PS -n 192.165.7.*
@@ -172,9 +170,9 @@ namespace NetworkScanner
             process.StartInfo.ArgumentList.Add(ipAddressRange);
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardOutput = true;
-            process.OutputDataReceived += new DataReceivedEventHandler((sender, e) => 
+            process.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
             {
-                if(!string.IsNullOrEmpty(e.Data))
+                if (!string.IsNullOrEmpty(e.Data))
                 {
                     readOut.Add(e.Data);
                 }
@@ -184,12 +182,12 @@ namespace NetworkScanner
             process.BeginOutputReadLine();
             process.WaitForExit();
             process.Close();
-            
+
             return readOut;
         }
     }
 
-    public class Host 
+    public class Host
     {
         public string Latency { get; set; }
         public bool IsUp { get; set; }

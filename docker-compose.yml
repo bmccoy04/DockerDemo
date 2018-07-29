@@ -20,7 +20,7 @@ services:
       - "webapi"
       - "rabbitmq"  
   receiver:    
-    build: ./NetworkReceiver
+    build: ./NetworkHostedServices
     depends_on:
       - "webapi"
       - "redis"
